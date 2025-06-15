@@ -1,54 +1,48 @@
 <template>
   <div class="login-container">
-    <div v-if="configMissing" class="config-warning">
-      <h3>⚠️ 数据库配置缺失</h3>
-      <p>请先配置数据库连接信息才能登录。</p>
-      <button @click="goToConfig" class="config-btn">前往配置</button>
+    <h2>Hospital Database Login</h2>
+    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="info-message">
+      <p><strong>数据库连接信息:</strong></p>
+      <p>主机: 47.116.113.18:3306</p>
+      <p>数据库: hospital_management</p>
+      <p><small>后端服务器将直接连接到数据库</small></p>
     </div>
-    
-    <div v-else>
-      <h2>Hospital Database Login</h2>
-      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input 
-            type="text" 
-            id="username" 
-            v-model="username" 
-            required 
-            :disabled="isLoading"
-            placeholder="Enter your username"
-          />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="password" 
-            required 
-            :disabled="isLoading"
-            placeholder="Enter your password"
-          />
-        </div>
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Logging in...' : 'Login' }}
-        </button>
-      </form>
-      <div class="login-info">
-        <p><strong>Demo Credentials:</strong></p>
-        <p>Username: admin</p>
-        <p>Password: admin123</p>
-        <p><small>Database: 192.168.0.31:3307</small></p>
-        <button @click="goToConfig" class="config-link">修改数据库配置</button>
+    <form @submit.prevent="handleLogin">
+      <div class="form-group">
+        <label for="username">用户名:</label>
+        <input 
+          type="text" 
+          id="username" 
+          v-model="username" 
+          required 
+          :disabled="isLoading"
+          placeholder="输入用户名"
+        />
       </div>
+      <div class="form-group">
+        <label for="password">密码:</label>
+        <input 
+          type="password" 
+          id="password" 
+          v-model="password" 
+          required 
+          :disabled="isLoading"
+          placeholder="输入密码"
+        />
+      </div>
+      <button type="submit" :disabled="isLoading">
+        {{ isLoading ? '登录中...' : '登录' }}
+      </button>
+    </form>
+    <div class="login-help">
+      <p><small>输入任意用户名和密码即可登录并测试数据库连接</small></p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { apiService } from '@/services/api'
@@ -57,13 +51,12 @@ const username = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
-const configMissing = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 
 const handleLogin = async () => {
   if (!username.value || !password.value) {
-    errorMessage.value = 'Please enter both username and password'
+    errorMessage.value = '请输入用户名和密码'
     return
   }
 
@@ -77,72 +70,31 @@ const handleLogin = async () => {
       userStore.setAuthData(response.user, response.token)
       router.push('/data')
     } else {
-      errorMessage.value = 'Login failed'
+      errorMessage.value = '登录失败'
     }
   } catch (error) {
     console.error('Login error:', error)
-    errorMessage.value = error instanceof Error ? error.message : 'Login failed. Please try again.'
+    errorMessage.value = error instanceof Error ? error.message : '登录失败，请重试'
   } finally {
     isLoading.value = false
   }
 }
-
-const checkDatabaseConfig = () => {
-  const savedConfig = localStorage.getItem('dbConfig')
-  if (!savedConfig) {
-    configMissing.value = true
-    return
-  }
-  
-  try {
-    const config = JSON.parse(savedConfig)
-    if (!config.host || !config.user || !config.password) {
-      configMissing.value = true
-      return
-    }
-    
-    // 恢复API服务配置
-    apiService.setDatabaseConfig(config)
-    configMissing.value = false
-  } catch (error) {
-    console.error('Failed to load database config:', error)
-    configMissing.value = true
-  }
-}
-
-const goToConfig = () => {
-  router.push('/config')
-}
-
-onMounted(() => {
-  checkDatabaseConfig()
-})
 </script>
 
 <style scoped>
 .login-container {
   max-width: 400px;
-  margin: 80px auto;
+  margin: 50px auto;
   padding: 40px;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  background-color: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.login-container h2 {
+h2 {
   text-align: center;
-  margin-bottom: 30px;
   color: #333;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.login-container form {
-  width: 100%;
+  margin-bottom: 30px;
 }
 
 .form-group {
@@ -151,133 +103,96 @@ onMounted(() => {
 
 label {
   display: block;
-  margin-bottom: 8px;
-  color: #495057;
+  margin-bottom: 5px;
   font-weight: 500;
-  font-size: 14px;
+  color: #555;
 }
 
-input {
+input[type="text"],
+input[type="password"] {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
+  padding: 12px;
+  border: 2px solid #ddd;
   border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
   box-sizing: border-box;
-  font-size: 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input:focus {
+input[type="text"]:focus,
+input[type="password"]:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-button {
+input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+button[type="submit"] {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  margin-top: 20px;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
 }
 
-button:hover {
+button[type="submit"]:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
-button:active {
-  transform: translateY(1px);
-}
-
-button:disabled {
+button[type="submit"]:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 6px;
   margin-bottom: 20px;
-  padding: 12px 16px;
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
-  border-radius: 6px;
-  font-size: 14px;
+  border: 1px solid #f5c6cb;
 }
 
-.login-info {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #f8f9fa;
+.info-message {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 15px;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
-  text-align: center;
+  margin-bottom: 20px;
+  border: 1px solid #bee5eb;
 }
 
-.login-info p {
+.info-message p {
   margin: 5px 0;
   font-size: 14px;
 }
 
-.login-info strong {
-  color: #333;
+.info-message strong {
+  color: #0c5460;
 }
 
-.login-info small {
+.info-message small {
   color: #6c757d;
   font-style: italic;
 }
 
-.config-warning {
+.login-help {
   text-align: center;
-  padding: 30px;
-  background-color: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  color: #856404;
+  margin-top: 20px;
 }
 
-.config-warning h3 {
-  margin-bottom: 15px;
-  color: #b45309;
-}
-
-.config-btn {
-  background-color: #ffc107;
-  color: #212529;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 15px;
-  transition: background-color 0.2s ease;
-}
-
-.config-btn:hover {
-  background-color: #ffb300;
-}
-
-.config-link {
-  background: none;
-  border: 1px solid #007bff;
-  color: #007bff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-top: 10px;
-  transition: all 0.2s ease;
-}
-
-.config-link:hover {
-  background-color: #007bff;
-  color: white;
+.login-help p {
+  color: #6c757d;
+  font-size: 13px;
 }
 
 @media (max-width: 480px) {

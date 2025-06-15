@@ -1,10 +1,10 @@
 <template>
   <div class="data-container">
-    <h2>Hospital Database Management</h2>
+    <h2>医院数据库管理系统</h2>
     <div v-if="userStore.isLoggedIn">
       <div class="user-info">
-        <p>Welcome, {{ userStore.user?.username }}!</p>
-        <button @click="handleLogout">Logout</button>
+        <p>欢迎, {{ userStore.user?.username }}!</p>
+        <button @click="handleLogout">登出</button>
       </div>
 
       <div v-if="connectionStatus" class="connection-status" :class="{ 'error': connectionStatus.includes('❌') }">
@@ -13,7 +13,7 @@
 
       <div class="query-container">
         <div class="query-help">
-          <h3>Available Tables:</h3>
+          <h3>可用表:</h3>
           <div v-if="availableTables.length > 0" class="tables-list">
             <span 
               v-for="table in availableTables" 
@@ -24,23 +24,23 @@
               {{ table }}
             </span>
           </div>
-          <div v-else class="no-tables">No tables found or not connected</div>
-          
-          <h3>Sample Queries:</h3>
+          <div v-else class="no-tables">未找到表或未连接</div>
+
+          <h3>示例查询:</h3>
           <div class="sample-queries">
             <button 
               type="button" 
               class="sample-btn"
               @click="insertSampleQuery('SHOW TABLES')"
             >
-              Show Tables
+              显示Tables
             </button>
             <button 
               type="button" 
               class="sample-btn"
               @click="insertSampleQuery('SHOW DATABASES')"
             >
-              Show Databases
+              显示DataBases
             </button>
             <button 
               type="button" 
@@ -63,14 +63,14 @@
       </div>
       
       <div class="navigation-links">
-        <router-link to="/user-management">Manage Database Users</router-link>
+        <router-link to="/user-management">管理数据库用户</router-link>
       </div>
 
-      <div v-if="isLoading" class="loading-message">Executing query...</div>
+      <div v-if="isLoading" class="loading-message">正在执行查询...</div>
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
 
       <div v-if="!isLoading && displayedData.length > 0" class="results-container">
-        <h3>Query Results ({{ displayedData.length }} rows)</h3>
+        <h3>查询结果 ({{ displayedData.length }} 行)</h3> 
         <div class="table-wrapper">
           <table>
             <thead>
@@ -88,11 +88,11 @@
       </div>
       
       <div v-if="!isLoading && !errorMessage && displayedData.length === 0 && hasExecutedQuery" class="empty-state">
-        <p>No data returned for your query, or the query returned an empty result set.</p>
+        <p>未返回任何数据，或者查询返回了空结果集。</p>
       </div>
     </div>
     <div v-else>
-      <p>Please <router-link to="/">login</router-link> to access the database.</p>
+      <p>请 <router-link to="/">登录</router-link> 以访问数据库。</p>
     </div>
   </div>
 </template>
@@ -119,13 +119,13 @@ const testConnection = async () => {
   try {
     const response = await apiService.testConnection(userStore.token);
     if (response.success) {
-      connectionStatus.value = `✅ Connected to database successfully`;
+      connectionStatus.value = `✅ 连接数据库成功`;
       if (response.message) {
         connectionStatus.value += ` - ${response.message}`;
       }
     }
   } catch (error) {
-    connectionStatus.value = `❌ Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    connectionStatus.value = `❌ 连接失败: ${error instanceof Error ? error.message : '未知错误'}`;
   }
 };
 
@@ -138,19 +138,19 @@ const loadTables = async () => {
       availableTables.value = response.data;
     }
   } catch (error) {
-    console.error('Failed to load tables:', error);
+    console.error('加载表失败:', error);
   }
 };
 
 const executeSqlQuery = async () => {
   const query = sqlQuery.value.trim();
   if (!query) {
-    alert("SQL query cannot be empty.");
+    alert("SQL语句不能为空。");
     return;
   }
 
   if (!userStore.token) {
-    alert("Authentication token missing. Please login again.");
+    alert("身份验证失效。请重新登录。");
     router.push('/');
     return;
   }
@@ -165,14 +165,14 @@ const executeSqlQuery = async () => {
     
     if (result.success) {
       displayedData.value = result.data || [];
-      console.log(`Query executed successfully. ${result.rowCount || 0} rows returned.`);
+      console.log(`查询执行成功。${result.rowCount || 0} 行返回。`);
     } else {
-      throw new Error(result.error || 'Query execution failed');
+      throw new Error(result.error || '查询执行失败');
     }
 
   } catch (error) {
-    console.error("Error executing SQL query:", error);
-    errorMessage.value = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error("执行SQL查询时出错:", error);
+    errorMessage.value = error instanceof Error ? error.message : '发生未知错误';
     displayedData.value = [];
   } finally {
     isLoading.value = false;

@@ -24,7 +24,7 @@
             id="port"
             v-model.number="config.port"
             type="number"
-            placeholder="3307"
+            placeholder="3306"
             required
           />
         </div>
@@ -132,7 +132,7 @@ interface DatabaseConfig {
 
 const config = ref<DatabaseConfig>({
   host: '192.168.0.31',
-  port: 3307,
+  port: 3306,
   user: '',
   password: '',
   database: ''

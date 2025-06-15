@@ -53,7 +53,7 @@ class DatabaseService {
   setConfig(config: Partial<DatabaseConfig>) {
     this.config = { 
       host: '192.168.0.31',
-      port: 3307,
+      port: 3306,
       user: '',
       password: '',
       database: '',
