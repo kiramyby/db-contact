@@ -4,7 +4,6 @@
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div class="info-message">
       <p><strong>数据库连接信息:</strong></p>
-      <p>主机: 47.116.113.18:3306</p>
       <p>数据库: hospital_management</p>
       <p><small>后端服务器将直接连接到数据库</small></p>
     </div>
